@@ -27,6 +27,7 @@ if (!isset($_SESSION["user"])) header("location:index.php");
             <li><a href="servicios/firewall.php">Firewall</a></li>
             <li><a href="servicios/dns.php">DNS</a></li>
             <li><a href="servicios/dhcp.php">DHCP</a></li>
+            <li><a href="servicios/estadoservicios.php">Estado servicios</a></li>
         </ul>
     </nav>
     

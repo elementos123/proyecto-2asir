@@ -1,0 +1,99 @@
+html,
+body 
+{
+    position: relative;
+    margin: 0;
+    padding: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 99%;
+    scroll-behavior: smooth;
+    background-color: #4831D4;
+    color: #CCF381;
+    font-size: 120%;
+}
+
+header 
+{
+    border-bottom: solid 3px #CCF381;
+    background-color: #4831D4;
+    height: min-content;
+    position: absolute;
+    margin: 0;
+    padding: 0.2%;
+    padding-left: 1%;
+    left: 0;
+    right: 0;
+    top: 0;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+#contenedor > center > form > span > input
+{
+    border: none;
+    border-bottom: solid 1px white;
+    padding: 1%;
+    font-size: 50%;
+    background: none;
+    outline: none;
+    resize: none;
+    width: 20%;
+    height: 10%;
+    color: white;
+}
+
+
+#contenedor > center > form > span > input:focus
+{
+    box-shadow: 2px 2px 2px 2px #CCF381;
+}
+
+
+#contenedor > center > form > input
+{
+    border: solid 1px #CCF381;
+    padding: 20px;
+    font-size: 100%;
+    width: 500px;
+    background: none;
+    outline: none;
+    resize: none;
+    color: white;
+    cursor: pointer;
+}
+
+
+#contenedor > center > form > input:hover
+{
+    box-shadow: 2px 2px 2px 2px #CCF381;
+}
+
+
+
+table 
+{
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+  
+td, th 
+{
+    border: 1px solid #dddddd;
+    text-align: center;
+    padding: 8px;
+}
+
+
+#botonfirewall
+{
+    border: solid 3px #CCF381;
+    background: none;
+    padding: 0.5%;
+    margin-left: 1%;
+    color: #CCF381;
+    cursor: pointer;
+    font-size: 80%;
+}
