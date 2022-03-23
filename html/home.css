@@ -1,0 +1,45 @@
+html,
+body {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 99%;
+    scroll-behavior: smooth;
+    background-color: #4831D4;
+    color: #CCF381;
+    font-size: 150%;
+}
+
+header {
+    border-bottom: solid 3px #CCF381;
+    background-color: #4831D4;
+    height: min-content;
+    position: absolute;
+    margin: 0;
+    padding: 0.2%;
+    padding-left: 1%;
+    left: 0;
+    right: 0;
+    top: 0;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+nav > ul > li
+{
+    position: relative;
+    padding-top: 1%;
+    left: 15%;
+    float: left;
+    list-style: none;
+    padding-left: 5%;
+}
+
+nav > ul > li > a
+{
+    text-decoration: none;
+    color:#CCF381;
+}
