@@ -28,6 +28,10 @@ if (!isset($_SESSION["user"])) header("location:index.php");
             <li><a href="servicios/dns.php">DNS</a></li>
             <li><a href="servicios/dhcp.php">DHCP</a></li>
             <li><a href="servicios/estadoservicios.php">Estado servicios</a></li>
+            <?php
+                echo "<li><a href='administracion.php'>Administración</a></li>";
+            ?>
+            <li><a href="cerrarsesion.php">Cerrar sesión</a></li>
         </ul>
     </nav>
     

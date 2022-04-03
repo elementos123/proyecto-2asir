@@ -1,3 +1,6 @@
--P INPUT ACCEPT -c 170241 103380620
--A INPUT -c 170241 103380620 -j LOG --log-prefix "iptables: "
+-P INPUT ACCEPT -c 66603 8970456
+-A INPUT -c 66608 8970856 -j LOG --log-prefix "iptables: "
 -A INPUT -s 9.9.9.9/32 -d 9.9.9.9/32 -c 0 0 -j ACCEPT
+-A INPUT -s 0.0.0.0/32 -d 0.0.0.0/32 -c 0 0 -j ACCEPT
+-A INPUT -s 8.8.8.8/32 -d 5.5.5.5/32 -c 0 0 -j ACCEPT
+-A INPUT -s 4.4.4.4/32 -d 4.8.4.8/32 -c 0 0 -j DROP

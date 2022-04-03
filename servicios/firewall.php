@@ -265,6 +265,7 @@ session_start();
             $gestor = popen('sudo sh bat/guardariptables.bat', 'r');
             pclose($gestor);
 
+
             echo '<meta http-equiv="refresh" content="0; url = firewall.php"/>';
             
         }

@@ -2,44 +2,88 @@
 
 require 'config.php';
 
-function CrearUsuarios($usuario, $password, $email, $rango, $crearindex)
+function CrearUsuarios($usuario, $password, $email, $rango, $crearindex, $redirigir, $donderedirigir)
 {
     $conexion = Conectar();
-    $consulta = $conexion->prepare("SELECT * FROM users");
-    $consulta->execute();
+    $consulta = $conexion->prepare("SELECT * FROM users WHERE usuario = ?");
+    $consulta->execute([$usuario]);
+    $resultadousuario = $consulta->rowCount();
+
+    $conexion = null;
+    $consulta = null;
+    $conexion = Conectar();
+    $consulta = $conexion->prepare("SELECT * FROM users WHERE email = ?");
+    $consulta->execute([$email]);
+    $resultadoemail= $consulta->rowCount();
+
+
+    if ($resultadousuario > 0)
+    {
+        echo "El usuario ".$usuario." ya existe";
+    }
+    else if ($resultadoemail > 0)
+    {
+        echo "El email ".$email." ya existe";
+    }
+    else
+    {
+        $conexion = null;
+        $consulta = null;
+        $conexion = Conectar();
+        $password = password_hash($password, PASSWORD_BCRYPT);
+        $consulta = $conexion->prepare("INSERT INTO users (usuario, password, email, ranks) VALUES (?, ?, ?, ?)");
+        $consulta->execute([$usuario, $password, $email, $rango]);
+        
+        if ($crearindex)
+        {
+                //Añade redirección, por lo que podemos obtener stderr.
+                $gestor = popen('sh install/terminarinstalacion.bat 2>&1', 'r');
+                //echo "'$gestor'; " . gettype($gestor) . "\n";
+                //$leer = fread($gestor, 2096);
+                //echo $leer;
+                pclose($gestor);
+        }
+    }
     
-    while($fila = $consulta->fetch())
+    /*while($fila = $consulta->fetch())
     {
         if ($usuario == $fila['usuario'])
         {
-            echo "Ese usuario ya existe en la base de datos";
-            return false;
+            echo "Ese usuario ya existe en la base de datos llamado ".$fila['usuario']."<br>";
+            //return false;
         }
         else if ($email == $fila['email'])
         {
             echo "Ese correo electrónico ya existe en la base de datos, asignado al usuario " . $fila["usuario"];
-            return false;
+            //return false;
         }
-    }
+        else
+        {
+            $conexion = null;
+            $consulta = null;
+        
+            $conexion = Conectar();
+            $consulta = $conexion->prepare("INSERT INTO users(usuario,password,email,ranks) VALUES ('$usuario','$password','$email','$rango')");
+            $consulta->execute();
+            if ($crearindex)
+            {
+                error_reporting(E_ALL);
+        
+                /* Añade redirección, por lo que podemos obtener stderr. *//*
+                $gestor = popen('sh install/terminarinstalacion.bat 2>&1', 'r');
+                //echo "'$gestor'; " . gettype($gestor) . "\n";
+                //$leer = fread($gestor, 2096);
+                //echo $leer;
+                pclose($gestor);
+            }
+        }
+    }*/
 
-    $conexion = null;
-    $consulta = null;
 
-    $conexion = Conectar();
-    $consulta = $conexion->prepare("INSERT INTO users(usuario,password,email,ranks) VALUES ('$usuario','$password','$email','$rango')");
-    $consulta->execute();
-    if ($crearindex)
-    {
-        error_reporting(E_ALL);
-
-        /* Añade redirección, por lo que podemos obtener stderr. */
-        $gestor = popen('sh install/terminarinstalacion.bat 2>&1', 'r');
-        //echo "'$gestor'; " . gettype($gestor) . "\n";
-        //$leer = fread($gestor, 2096);
-        //echo $leer;
-        pclose($gestor);
-    }
-    header("location:index.php");
+   if ($redirigir)
+   {
+    header("location:".$donderedirigir);
+   }
     
 
 }
@@ -52,26 +96,67 @@ function ConsultarUsuarios($usuario, $password)
     if (empty($password)) {echo "La contraseña no puede estar vacia"; return false;}
     
     $conexion = Conectar();
-    $consulta = $conexion->prepare("SELECT usuario,password FROM users");
-    $consulta->execute();
-    
-    while ($fila = $consulta->fetch()) 
+    $consulta = $conexion->prepare("SELECT usuario,password FROM users WHERE usuario=?");
+    $consulta->execute([$usuario]);
+    $fila = $consulta->fetch();
+    $resultado = $consulta->rowCount();
+
+    if ($resultado != 0)
     {
-        
-        if ($usuario != $fila['usuario'])
-        {
-            echo "Ese usuario no existe en la base de datos";
-            return false;
-        }
-        else if (!password_verify($password, $fila["password"]))
+        if (!password_verify($password, $fila["password"]))
         {
             echo "Esa no es la contraseña del usuario " . $fila["usuario"];
             return false;
         }
     }
 
+
     $_SESSION["user"] = $usuario;
     echo '<meta http-equiv="refresh" content="0; url = home.php"/>';
+}
+
+function ObtenerInfoTodosLosUsuarios()
+{
+    $conexion = Conectar();
+    $consulta = $conexion->prepare("SELECT usuario, email, ranks FROM users");
+    $consulta->execute();
+    $resultado = $consulta->fetchAll();
+    return $resultado;
+}
+
+function EliminarUsuario($usuario)
+{
+    $conexion = Conectar();
+    if ($_SESSION["user"] != $usuario) 
+    {
+        $consulta = $conexion->prepare("DELETE FROM users WHERE usuario = ?");
+        $consulta->execute([$usuario]);
+    }
+    else
+    {
+        echo "<script>alert('No puedes eliminar tu propio usuario');</script>";
+    }
+    
+}
+
+function ActualizarUsuario($usuariooriginal, $usuario, $password, $email, $rango)
+{
+    $conexion = Conectar();
+    if (!empty($usuario) && !empty($usuariooriginal) && !empty($rango) && !empty($email)) 
+    {
+        if (!empty($password)) 
+        {
+            $password = password_hash($password, PASSWORD_BCRYPT);
+            $consulta = $conexion->prepare("UPDATE users SET usuario = ?, password = ?, email = ?, ranks = ? WHERE usuario = ?");
+            $consulta->execute([$usuario, $password, $email, $rango, $usuariooriginal]);
+        }
+        else
+        {
+            $consulta = $conexion->prepare("UPDATE users SET usuario = ?, email = ?, ranks = ? WHERE usuario = ?");
+            $consulta->execute([$usuario, $email, $rango, $usuariooriginal]);
+        }
+    }
+    
 }
 
 
@@ -93,7 +178,8 @@ $posiciontd, $origentd, $destinotd, $acceptordroptd, $eliminarbotonx, $idparaocu
 
     for ($i=0; $i < count($contenido); $i++) 
     { 
-        if (strpos($contenido, "-P") !== false)
+        if (strpos($contenido, "-P") !== false 
+        || strpos($contenido, "LOG") !== false)
         {
             unset($contenido[$i]);
             $contenido[$i] = $contenido[$i+1];
@@ -128,26 +214,26 @@ $posiciontd, $origentd, $destinotd, $acceptordroptd, $eliminarbotonx, $idparaocu
     </tr>
 
     <?php
-    $archivo = fopen("$rutaarchivoinput", "r");
+    //print_r($contenido);
+    //$archivo = popen('sudo cat '.$rutaarchivoinput.' 2>&1', 'r');
+    //$archivo = fopen("$rutaarchivoinput", "r");
     $guardarorigen = "No especificado, por defecto es 0.0.0.0";
     $guardardestino = "No especificado, por defecto es 0.0.0.0";
+    $contador = 0;
     for ($i=0; $i < count($contenido); $i++) 
     { 
-        $line = fgets($archivo);
-        $array = explode(" ", $line);
-        if (strpos($array[$i], "LOG") !== false || strpos($array[$i], "-P") !== false)
+        if (strpos($contenido[$i], "LOG") !== false || strpos($contenido[$i], "-P") !== false)
         {
             pass;
         }
         else
         {
-            //$operacion = $i + 1;
             echo '<tr id="'.$idparaeliminartr.$i.'">';
-            while(!feof($archivo)) 
+            $array = explode(" ", $contenido[$i]);
+            while($contador < count($array)) 
             {
-                $line = fgets($archivo);
-                $array = explode(" ", $line);
-                if (strpos($line, "-A") !== false)
+                $contador++;
+                if (strpos($contenido[$i], "-A") !== false)
                 {
     
                     for ($e=0; $e < count($array); $e++) 
@@ -170,7 +256,7 @@ $posiciontd, $origentd, $destinotd, $acceptordroptd, $eliminarbotonx, $idparaocu
                         }
                     }
     
-                    if (strpos($line, "ACCEPT") !== false)
+                    if (strpos($array, "ACCEPT") !== false)
                     {
                         $acceptordrop = "ACCEPT";
                     }
@@ -178,7 +264,6 @@ $posiciontd, $origentd, $destinotd, $acceptordroptd, $eliminarbotonx, $idparaocu
                     {
                         $acceptordrop = "DROP";
                     }
-                    
                     ?>
                     <td><input type="number" onclick="CambiarInfoInputs(<?php echo $i; ?>, '<?php echo $posiciontd; ?>', '<?php echo $origentd; ?>', '<?php echo $destinotd; ?>', '<?php echo $acceptordroptd; ?>', '<?php echo $eliminarbotonx; ?>')" value="<?php echo $i; ?>" name="<?php echo $posiciontd.$i; ?>" id="<?php echo $posiciontd.$i; ?>" readonly></td>
                     <td><input type="text" value="<?php echo $guardarorigen; ?>" name="<?php echo $origentd.$i; ?>" id="<?php echo $origentd.$i; ?>"></td>
@@ -188,6 +273,7 @@ $posiciontd, $origentd, $destinotd, $acceptordroptd, $eliminarbotonx, $idparaocu
                     <?php
                     $guardarorigen = "No especificado, por defecto es 0.0.0.0";
                     $guardardestino = "No especificado, por defecto es 0.0.0.0";
+                    
                     break;
                 }
             }

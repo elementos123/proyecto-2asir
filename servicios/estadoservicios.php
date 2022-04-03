@@ -199,7 +199,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                 <span class="close" id="iptablesclose">&times;</span>
-                <h2><?php echo "Logs de iptables"; ?></h2>
+                <h2>Logs de iptables</h2>
                 </div>
                 <div class="modal-body">
                 <textarea spellcheck="false" readonly style=" font-size: 80%; width: 100%; position:relative; left: -15px; margin:0; height: 700px; outline: none; padding: 1%;">
@@ -207,12 +207,13 @@
                     ini_set('display_errors', 1);
                     ini_set('display_startup_errors', 1);
                     error_reporting(E_ALL);
-                        $contenido = file_get_contents("/var/log/iptables.log");
-                        if (strlen($contenido) > 500000) 
+                        $gestor = popen("sudo cat /var/log/iptables.log 2>&1", "r");
+                        $contenido = fread($gestor, filesize("/var/log/iptables.log"));
+                        if (strlen($contenido) > 500000000) 
                         {
                             $gestor = popen('echo "" > /var/log/iptables.log', "w");
                         }
-                        $contenido = file_get_contents("/var/log/iptables.log");
+                        $contenido = fread($gestor, filesize("/var/log/iptables.log"));
                         $lineas = 0;
                         $contador = 0;
                         $array = explode("\n", $contenido);
@@ -237,7 +238,7 @@
 
                         if (isset($_GET["mostrarmasdeiptables"])) 
                         {
-                            echo $arraycontenedor[$_GET["numero"]+1];
+                            echo $arraycontenedor[$_GET["numero"]];
                         }
                         else
                         {
@@ -255,26 +256,23 @@
                     ?>
                     <form action="" method="get">
                     <?php
-                        if (isset($_GET["numero"]) && $_GET["numero"] < count($arraycontenedor)) 
+                        if (isset($_GET["numero"]) && $_GET["numero"] < count($arraycontenedor)-1) 
                         {
-                            echo "Aqui: " . count($arraycontenedor);
                             $operacion = $_GET["numero"]+1;
                             echo '<input type="hidden" name="numero" id="campohide" value="'.$operacion.'">';
                         }
-                        else if (isset($_GET["numero"]) && $_GET["numero"] >= count($arraycontenedor))
+                        else if (isset($_GET["numero"]) && $_GET["numero"] >= count($arraycontenedor)-1)
                         {
-                            echo "Aqui2: " . count($arraycontenedor);
                             $operacion = $_GET["numero"];
                             echo '<input type="hidden" name="numero" id="campohide" value="'.$operacion.'">';
                         }
                         else
                         {
-                            echo "Aqui3: " . count($arraycontenedor);
                             echo '<input type="hidden" name="numero" id="campohide" value="2">';
                         }
                     ?>
                 
-                    <input type="submit" name="mostrarmasdeiptables" value="Mostrando <?php if (isset($_GET["numero"])) {echo $_GET["numero"];} else {echo "1";} ?> de <?php echo count($arraycontenedor); ?>">
+                    <input type="submit" name="mostrarmasdeiptables" value="Mostrando <?php if (isset($_GET["numero"])) {echo $_GET["numero"];} else {echo "1";} ?> de <?php echo count($arraycontenedor)-1; ?>">
                     </form>
                 </div>
                 
@@ -290,11 +288,92 @@
             <div class="modal-content">
                 <div class="modal-header">
                 <span class="close" id="dnsclose">&times;</span>
-                <h2>Logs de bind9</h2>
+                <h2>Logs de dns</h2>
                 </div>
                 <div class="modal-body">
-                <p>Some text in the Modal Body</p>
+                <textarea spellcheck="false" readonly style=" font-size: 80%; width: 100%; position:relative; left: -15px; margin:0; height: 700px; outline: none; padding: 1%;">
+                    <?php 
+                        $gestor2 = popen("sudo cat /var/log/syslog | grep bind 2>&1", "r");
+                        $contenido2 = fread($gestor2, filesize("/var/log/syslog"));
+                        if (strlen($contenido2) > 500000000) 
+                        {
+                            $gestor2 = popen('echo "" > /var/log/syslog', "w");
+                        }
+                        $contenido2 = fread($gestor2, filesize("/var/log/syslog"));
+                        $lineas2 = 0;
+                        $contador2 = 0;
+                        $array2 = explode("\n", $contenido2);
+                        $arraycontenedor2 = array();
+                        $contadorarray2 = 0;
+                        $textotemporal2 = "";
+                        for ($i=0; $i < count($array2); $i++) 
+                        { 
+                            $textotemporal2 = $textotemporal2 . $array2[$i]. "\n\n";
+
+                            if ($contador2 == 10) 
+                            {
+                                $arraycontenedor2[$contadorarray2] = $textotemporal2;
+                                $contador2 = 0;
+                                $contadorarray2++;
+                                $textotemporal2 = "";
+                            }
+
+                            $contador2++;
+                            
+                        }
+
+                        if (isset($_GET["mostrarmasdedns"])) 
+                        {
+                            if($_GET["numerobind9"] < count($arraycontenedor2)-1)
+                            {
+                                echo $arraycontenedor2[$_GET["numerobind9"]];
+                            }
+                        }
+                        else
+                        {
+                            echo $arraycontenedor2[0];
+                        }
+                    ?>
+                    </textarea>
+                    <?php 
+                        
+                        if (isset($_GET["mostrarmasdedns"])) 
+                        {
+                            if($_GET["numerobind9"] >= count($arraycontenedor2)-1)
+                            {
+                                $operacion2 = count($arraycontenedor2)-1;
+                                echo '<meta http-equiv="refresh" content="0; url=estadoservicios.php?numerobind9=0&mostrarmasdedns=Mostrando+0+de+'.$operacion2.'"/>';
+                            } 
+                        }
+
+                        if (isset($_GET["mostrarmasdedns"])) 
+                        {
+                            echo '<script>AbrirModal("dns", "dnsclose");</script>';
+                        }
+
+                    ?>
+                    <form action="" method="get">
+                    <?php
+                        if (isset($_GET["numerobind9"]) && $_GET["numerobind9"] < count($arraycontenedor2)-1) 
+                        {
+                            $operacion2 = $_GET["numerobind9"]+1;
+                            echo '<input type="hidden" name="numerobind9" id="campohide" value="'.$operacion2.'">';
+                        }
+                        else if (isset($_GET["numerobind9"]) && $_GET["numerobind9"] >= count($arraycontenedor2)-1)
+                        {
+                            $operacion2 = $_GET["numerobind9"];
+                            echo '<input type="hidden" name="numerobind9" id="campohide" value="'.$operacion2.'">';
+                        }
+                        else
+                        {
+                            echo '<input type="hidden" name="numerobind9" id="campohide" value="1">';
+                        }
+                    ?>
+                
+                    <input type="submit" name="mostrarmasdedns" value="Mostrando <?php if (isset($_GET["numerobind9"])) {echo $_GET["numerobind9"];} else {echo "0";} ?> de <?php echo count($arraycontenedor2)-1; ?>">
+                    </form>
                 </div>
+                
             </div>
 
         </div>
@@ -307,12 +386,99 @@
             <div class="modal-content">
                 <div class="modal-header">
                 <span class="close" id="dhcpclose">&times;</span>
-                <h2><?php echo "Logs de isc-dhcp-server"; ?></h2>
+                <h2>Logs de dhcp</h2>
                 </div>
                 <div class="modal-body">
-                <p>Some text in the Modal Body</p>
+                <textarea spellcheck="false" readonly style=" font-size: 80%; width: 100%; position:relative; left: -15px; margin:0; height: 700px; outline: none; padding: 1%;">
+                    <?php 
+                        $gestor2 = popen("sudo cat /var/log/syslog | grep dhcpd 2>&1", "r");
+                        $contenido2 = fread($gestor2, 999999);
+                        if (strlen($contenido2) > 500000000) 
+                        {
+                            $gestor2 = popen('echo "" > /var/log/syslog', "w");
+                        }
+                        $contenido2 = fread($gestor2, filesize("/var/log/syslog"));
+                        echo $contenido2;
+                        $lineas2 = 0;
+                        $contador2 = 0;
+                        $array2 = explode("\n", $contenido2);
+                        $arraycontenedor2 = array();
+                        $contadorarray2 = 0;
+                        $textotemporal2 = "";
+                        for ($i=0; $i < count($array2); $i++) 
+                        { 
+                            $textotemporal2 = $textotemporal2 . $array2[$i]. "\n\n";
+
+                            if ($contador2 == 20) 
+                            {
+                                $arraycontenedor2[$contadorarray2] = $textotemporal2;
+                                $contador2 = 0;
+                                $contadorarray2++;
+                                $textotemporal2 = "";
+                            }
+
+                            $contador2++;
+                            
+                        }
+
+                        if (isset($_GET["mostrarmasdedhcp"])) 
+                        {
+                            if($_GET["numerodhcp"] < count($arraycontenedor2)-1)
+                            {
+                                echo $arraycontenedor2[$_GET["numerodhcp"]];
+                            }
+                        }
+                        else
+                        {
+                            $operacion2 = count($arraycontenedor2)-1;
+                            echo $arraycontenedor2[0];
+                        }
+                    ?>
+                    </textarea>
+                    <?php 
+                        
+                        if (isset($_GET["mostrarmasdedhcp"])) 
+                        {
+                            if($_GET["numerodhcp"] >= count($arraycontenedor2))
+                            {
+                                $operacion2 = count($arraycontenedor2)-1;
+                                $operacion3 = $operacion2+1;
+                                echo '<meta http-equiv="refresh" content="0; url=estadoservicios.php?numerodhcp='.$operacion2.'&mostrarmasdedhcp=Mostrando+'.$operacion2.'+de+'.$operacion2.'"/>';
+                            } 
+                        }
+
+                        if (isset($_GET["mostrarmasdedhcp"])) 
+                        {
+                            $operacion2 = count($arraycontenedor2)-1;
+                            echo '<script>AbrirModal("dhcp", "dhcpclose");</script>';
+                        }
+
+                    ?>
+                    <form action="" method="get">
+                    <?php
+                        if (isset($_GET["numerodhcp"]) && $_GET["numerodhcp"] < count($arraycontenedor2)-1) 
+                        {
+                            $operacion2 = $_GET["numerodhcp"]+1;
+                            echo '<input type="hidden" name="numerodhcp" id="campohide" value="'.$operacion2.'">';
+                        }
+                        else if (isset($_GET["numerodhcp"]) && $_GET["numerodhcp"] >= count($arraycontenedor2)-1)
+                        {
+                            $operacion2 = $_GET["numerodhcp"];
+                            echo '<input type="hidden" name="numerodhcp" id="campohide" value="'.$operacion2.'">';
+                        }
+                        else
+                        {
+                            echo '<input type="hidden" name="numerodhcp" id="campohide" value="1">';
+                        }
+                    ?>
+                
+                    <input type="submit" name="mostrarmasdedhcp" value="Mostrando <?php if (isset($_GET["numerodhcp"])) {echo $_GET["numerodhcp"];} else {echo "0";} ?> de <?php echo $operacion2; ?>">
+                    </form>
                 </div>
+                
             </div>
+
+        </div>
 
         </div>
     </center>
