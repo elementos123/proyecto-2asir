@@ -19,4 +19,13 @@ function Conectar()
 }
 
 
+function DevolverIpPfsense()
+{
+    $pfsense1 = "http://";
+    $pfsense2 = "http://";
+    
+    return $pfsense1, $pfsense2;
+}
+
+
 ?>
